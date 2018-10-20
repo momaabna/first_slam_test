@@ -12,13 +12,11 @@ fe = FeatureExtractor(K)
 def imgprocess(img):
     img = cv2.resize(img,(W,H))
     #print img.shape
-    
-    
     match,pose = fe.extract(img)
-    print pose
+    print( pose)
     if match is None:
         return
-    print len(match)
+    print( len(match))
     for p1,p2 in match:
         u1,v1 = fe.denormalize(p1)
         u2,v2 = fe.denormalize(p2)
@@ -40,10 +38,8 @@ if __name__ =="__main__":
     while cap.isOpened():
         re,img = cap.read()
         imgprocess(img)
-        
-        
     else:
         pass
     cap.release()
     cv2.destroyAllWindows()
-    
+

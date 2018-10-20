@@ -7,7 +7,7 @@ class FeatureExtractor(object):
     GX = 16/2
     GY = 12/2
     def __init__(self,K):
-        self.orb = cv2.ORB(5000)
+        self.orb = cv2.ORB_create(5000)
         self.last = None
         self.bf = cv2.BFMatcher()
         self.img =None
