@@ -6,7 +6,7 @@ W = 1920/2
 H = 1080/2
 cv2.startWindowThread()
 cv2.namedWindow("image")
-F=1
+F=750
 K = np.array([[F, 0, W/2],[0,F,H/2],[0,0,1]])
 fe = FeatureExtractor(K)
 def imgprocess(img):
@@ -14,7 +14,8 @@ def imgprocess(img):
     #print img.shape
     
     
-    match = fe.extract(img)
+    match,pose = fe.extract(img)
+    print pose
     if match is None:
         return
     print len(match)

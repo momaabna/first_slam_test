@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from skimage.measure import ransac
 from skimage.transform import FundamentalMatrixTransform
-
+from skimage.transform import EssentialMatrixTransform
 class FeatureExtractor(object):
     GX = 16/2
     GY = 12/2
@@ -13,6 +13,7 @@ class FeatureExtractor(object):
         self.img =None
         self.K = K
         self.Kinv = np.linalg.inv(K)
+        self.lavg=[]
     def extract(self,img):
         #kps = []
         match =None
@@ -38,6 +39,7 @@ class FeatureExtractor(object):
         ret =[]
         kps = [cv2.KeyPoint(x=f[0][0],y=f[0][1],_size=20) for f in corners]
         kps,dess =self.orb.compute(img,kps)
+        pose =None
         if self.last is not None:
             match =self.bf.knnMatch(dess,self.last["des"],k=2)
             for m,n in match:
@@ -49,17 +51,39 @@ class FeatureExtractor(object):
                 ret =np.array(ret)
                 ret = self.normalize(ret)
                 model, inliers = ransac((ret[:, 0],ret[:, 1]),
-                        FundamentalMatrixTransform,
+                        #FundamentalMatrixTransform,
+                        EssentialMatrixTransform,
                         min_samples=8,
-                        residual_threshold=1,
+                        residual_threshold=0.001,
                         max_trials=100)
                 
                 ret = ret[inliers]
-                ss,vv,dd =np.linalg.svd(model.params)
-                print dd
+                
+                pose =self.extractRt(model.params)
+                
+
+                
+                
+                
+                #print f_l,np.mean(self.lavg)
             #match = zip([kps[m.QueryIdx] for m in match],[self.last["kps"][m.trainIdx] for m in match])
         self.last = {"kps":kps,"des":dess}
-        return ret
+        return ret,pose
+    def extractRt(self,E):
+        R=None
+        w = np.mat([[0,1,0],[-1,0,0],[0,0,1]])
+        u,s,vt =np.linalg.svd(E)
+        if np.linalg.det(vt)<0:
+            vt *=-1
+        R = u * w*vt;
+        
+        if np.linalg.det(R)<0:
+            R = u * w.T *vt
+        t = u[:,2]
+        
+        pose = np.concatenate([R,t.reshape(3,1)],axis=1)
+
+        return pose
     def add_ones(self,x):
         return np.concatenate([x,np.ones((x.shape[0],1))],axis=1)
     def denormalize(self,pt):
