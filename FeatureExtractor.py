@@ -82,7 +82,7 @@ class FeatureExtractor(object):
         t = u[:,2]
         
         pose = np.concatenate([R,t.reshape(3,1)],axis=1)
-
+        pose = np.concatenate([pose,np.array([[0],[0],[0],[1]]).T],axis=0)
         return pose
     def add_ones(self,x):
         return np.concatenate([x,np.ones((x.shape[0],1))],axis=1)
